@@ -2,9 +2,9 @@ name: APK.TW Auto Check-in
 
 on:
   schedule:
-    # 每天台灣時間上午 8:00 自動執行 (UTC 00:00)
+    # 每天台灣時間上午 08:00 自動執行 (UTC 00:00)
     - cron: '0 0 * * *'
-  workflow_dispatch: # 支援手動按鈕點擊觸發
+  workflow_dispatch: # 支援在 Actions 頁面手動點擊按鈕測試
 
 jobs:
   checkin:
@@ -23,21 +23,34 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install requests beautifulsoup4
+          pip install requests beautifulsoup4 i18n
 
-      - name: Run Check-in Script
+      - name: Inject Session Cookie
         env:
-          APKTW_USERNAME: ${{ secrets.APKTW_USERNAME }}
-          APKTW_PASSWORD: ${{ secrets.APKTW_PASSWORD }}
           APKTW_COOKIE: ${{ secrets.APKTW_COOKIE }}
         run: |
-          # 尋找專案中的 python 腳本執行 (若腳本檔名不同請自行修改)
+          python -c '
+          import os, pickle, requests
+          cookie_str = os.environ.get("APKTW_COOKIE", "")
+          session = requests.Session()
+          if cookie_str:
+              for item in cookie_str.split(";"):
+                  if "=" in item:
+                      k, v = item.strip().split("=", 1)
+                      session.cookies.set(k, v, domain="apk.tw")
+              with open(".session_cookies.pkl", "wb") as f:
+                  pickle.dump(session.cookies, f)
+              print("Session Cookie 注入成功！")
+          '
+
+      - name: Run Check-in Script
+        run: |
           if [ -f main.py ]; then
             python main.py
           elif [ -f auto_check_in.py ]; then
             python auto_check_in.py
-          elif [ -f index.py ]; then
-            python index.py
+          elif [ -f cli.py ]; then
+            python cli.py
           else
             python *.py
           fi
