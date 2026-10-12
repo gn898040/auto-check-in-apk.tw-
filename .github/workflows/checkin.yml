@@ -4,7 +4,7 @@ on:
   schedule:
     # 每天台灣時間上午 08:00 自動執行 (UTC 00:00)
     - cron: '0 0 * * *'
-  workflow_dispatch: # 支援手動觸發測試
+  workflow_dispatch: # 支援手動按鈕觸發測試
 
 jobs:
   checkin:
@@ -25,12 +25,9 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install requests beautifulsoup4 i18n
 
-      - name: Generate Dummy config.json & Inject Session Cookie
-        env:
-          APKTW_COOKIE: ${{ secrets.APKTW_COOKIE }}
+      - name: Generate Dummy config.json
         run: |
-          # 1. 建立偽造的 config.json 滿足 main.py 的檔案讀取需求
-          cat <<EOF > config.json
+          cat <<'EOF' > config.json
           {
             "lang": "zh_TW",
             "apktw": {
@@ -39,9 +36,12 @@ jobs:
             }
           }
           EOF
-          print("config.json 建立完成！")
+          echo "config.json 建立完成！"
 
-          # 2. 將 APKTW_COOKIE 注入為 .session_cookies.pkl 繞過登入
+      - name: Inject Session Cookie
+        env:
+          APKTW_COOKIE: ${{ secrets.APKTW_COOKIE }}
+        run: |
           python -c '
           import os, pickle, requests
           cookie_str = os.environ.get("APKTW_COOKIE", "")
