@@ -4,7 +4,7 @@ on:
   schedule:
     # 每天台灣時間上午 08:00 自動執行 (UTC 00:00)
     - cron: '0 0 * * *'
-  workflow_dispatch: # 支援手動按鈕觸發測試
+  workflow_dispatch: # 支援在 Actions 頁面手動點擊按鈕測試
 
 jobs:
   checkin:
@@ -58,4 +58,4 @@ jobs:
 
       - name: Run Check-in Script
         run: |
-          python main.py --no-ptt
+          python main.py --type apktw
