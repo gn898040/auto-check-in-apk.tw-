@@ -3,7 +3,7 @@ name: APK.TW Auto Check-in
 on:
   schedule:
     # 每天台灣時間上午 08:00 自動執行 (UTC 00:00)
-    - cron: '0 0 * * *'
+    - cron: '0 19  * * *'
   workflow_dispatch: # 支援在 Actions 頁面手動點擊按鈕測試
 
 jobs:
